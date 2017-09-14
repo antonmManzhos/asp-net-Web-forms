@@ -1,0 +1,1593 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>wwDataBinder</name>
+    </assembly>
+    <members>
+        <member name="T:MasterSystem.Web.Controls.IwwDataBinder">
+            <summary>
+            Extender style interface that allows adding a wwDataBinder 
+            object to a control and interact with a DataBinder object
+            on a Page. 
+            
+            Any control marked with this interface can be automatically
+            pulled into the a wwDataBinder instance with 
+            wwDataBinder.LoadFromControls().
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.RequiredFieldException">
+            <summary>
+            Exception thrown when a required field is not filled in. Used internally
+            for catching these errors and rendering the error.
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.BindingErrorException">
+            <summary>
+            Exception thrown when a BindingError is encountered
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.ValidationErrorException">
+            <summary>
+            An exception fired if a validation error occurs in DataBinding
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.wwDataBindingItem">
+             <summary>
+             An individual binding item. A BindingItem maps a source object - 
+             a property/field or database field - to a property of a Control object.
+            
+             The object is a child for the wwDataBinder object which acts as a master
+             object that performs the actual binding of individual BingingItems.
+             
+             Binding Items can be attached to controls and if the control implements the
+             IwwDataBinder
+             </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.wwDataBindingItem.DesignMode">
+            <summary>
+            Explicitly set designmode flag - stock doesn't work on Collection child items
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.#ctor">
+            <summary>
+            Default Constructor
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.#ctor(MasterSystem.Web.Controls.wwDataBinder)">
+            <summary>
+            Overridden constructor to allow DataBinder to be passed
+            as a reference. Unfortunately ASP.NET doesn't fire this when
+            creating the DataBinder child items.
+            </summary>
+            <param name="Parent"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.OnValidate">
+            <summary>
+            Fires the Validation Event
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.DataBind">
+            <summary>
+            Binds a source object and property to a control's property. For example
+            you can bind a business object to a the text property of a text box, or 
+            a DataRow field to a text box field. You specify a binding source object 
+            (Customer.Entity or Customer.DataRow) and property or field(Company, FirstName)
+            and bind it to the control and the property specified (Text).
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.DataBind(System.Web.UI.Control)">
+            <summary>
+            Binds a source object and property to a control's property. For example
+            you can bind a business object to a the text property of a text box, or 
+            a DataRow field to a text box field. You specify a binding source object 
+            (Customer.Entity or Customer.DataRow) and property or field(Company, FirstName)
+            and bind it to the control and the property specified (Text).
+            </summary>
+            <param name="WebPage">the Base control that binding source objects are attached to</param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.Unbind">
+            <summary>
+            Unbinds control properties back into the control source.
+            
+            This method uses reflection to lift the data out of the control, then 
+            parses the string value back into the type of the data source. If an error 
+            occurs the exception is not caught internally, but generally the 
+            FormUnbindData method captures the error and assigns an error message to 
+            the BindingErrorMessage property of the control.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.Unbind(System.Web.UI.Control)">
+            <summary>
+            Unbinds control properties back into the control source.
+            
+            This method uses reflection to lift the data out of the control, then 
+            parses the string value back into the type of the data source. If an error 
+            occurs the exception is not caught internally, but generally the 
+            FormUnbindData method captures the error and assigns an error message to 
+            the BindingErrorMessage property of the control.
+            <seealso>Class wwWebDataHelper</seealso>
+            </summary>
+            <param name="WebPage">
+            The base control that binding sources are based on.
+            </param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItem.ToString">
+            <summary>
+            Returns a the control bindingsource and binding source member
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.Binder">
+            <summary>
+            Reference to the DataBinder parent object.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.ControlId">
+            <summary>
+            The ID of the control to that is bound.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.MaxLength">
+            <summary>
+            The ID of the control to that is bound.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.ControlInstance">
+            <summary>
+            An optional instance of the control that can be assigned. Used internally
+            by the wwDatBindiner to assign the control whenever possible as the instance
+            is more efficient and reliable than the string name.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingSource">
+             <summary>
+             The binding source object that is the source for databinding.
+             This is an object of some sort and can be either a real object
+             or a DataRow/DataTable/DataSet. If a DataTable is used the first row 
+             is assumed. If a DataSet is used the first table and first row are assumed.
+            
+             The object reference is always Page relative, so binding doesn't work
+             against local variables, only against properties of the form. Form
+             properties that are bound should be marked public or protected, but
+             not private as Reflection is used to get the values. 
+             
+             This or me is implicit, but can be specified so
+              "Customer" or "this.Customer" is equivalent. 
+             </summary>
+             <example>
+             // *** Bind a DataRow Item
+             bi.BindingSource = "Customer.DataRow";
+             bi.BindingSourceMember = "LastName";
+            
+             // *** Bind a DataRow within a DataSet  - not recommended though
+             bi.BindingSource = "this.Customer.Tables["TCustomers"].Rows[0]";
+             bi.BindingSourceMember = "LastName";
+            
+             // *** Bind an Object
+             bi.BindingSource = "InventoryItem.Entity";
+             bi.BindingSourceMember = "ItemPrice";
+             
+             // *** Bind a form property
+             bi.BindingSource = "this";   // also "me" 
+             bi.BindingSourceMember = "CustomerPk";
+             </example>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingSourceObject">
+            <summary>
+            An instance of the object that the control is bound to
+            Optional - can be passed instead of a BindingSource string. Using
+            a reference is more efficient. Declarative use in the designer
+            always uses strings, code base assignments should use instances
+            with BindingSourceObject.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingSourceMember">
+            <summary>
+            The property or field on the Binding Source that is
+            bound. Example: BindingSource: Customer.Entity BindingSourceMember: Company
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingProperty">
+            <summary>
+            Property that is bound on the target controlId
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.DisplayFormat">
+            <summary>
+            Format Expression ( {0:c) ) applied to the binding source when it's displayed.
+            Watch out for two way conversion issues when formatting this way. If you create
+            expressions and you are also saving make sure the format used can be saved back.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.IsRequired">
+            <summary>
+            If set requires that the control contains a value, otherwise a validation error is thrown
+            Useful mostly on TextBox controls only.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.UserFieldName">
+            <summary>
+            A descriptive name for the field used for error display
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.ErrorMessageLocation">
+            <summary>
+            Determines how binding and validation errors display on the control
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.IsBindingError">
+            <summary>
+            Internal property that lets you know if there was binding error
+            on this control after binding occurred
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingErrorMessage">
+            <summary>
+            An error message that gets set if there is a binding error
+            on the control.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingMode">
+            <summary>
+            Determines how databinding and unbinding is done on the target control. 
+            One way only fires DataBind() and ignores Unbind() calls. 
+            Two-way does both. None effectively turns off binding.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItem.BindingType">
+            <summary>
+            Determines what the display type of data
+            </summary>
+        </member>
+        <member name="E:MasterSystem.Web.Controls.wwDataBindingItem.Validate">
+            <summary>
+            Use this event to hook up special validation logic. Called after binding completes. Return false to indicate validation failed
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.BindingErrorMessageLocations">
+            <summary>
+            Enumeration for the various binding error message locations possible
+            that determine where the error messages are rendered in relation to the
+            control.
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingErrorMessageLocations.WarningIconRight">
+            <summary>
+            Displays an image icon to the right of the control
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingErrorMessageLocations.TextExclamationRight">
+            <summary>
+            Displays a text ! next to the control 
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingErrorMessageLocations.RedTextBelow">
+            <summary>
+            Displays the error message as text below the control
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingErrorMessageLocations.RedTextAndIconBelow">
+            <summary>
+            Displays an icon and the text of the message below the control.
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.BindingModes">
+            <summary>
+            Determines how databinding is performed for the target control. Note that 
+            if a wwDataBindingItem is  marked for None or OneWay, the control will not 
+            be unbound or in the case of None bound even when an explicit call to 
+            DataBind() or Unbind() is made.
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingModes.TwoWay">
+            <summary>
+            Databinding occurs for DataBind() and Unbind()
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingModes.OneWay">
+            <summary>
+            DataBinding occurs for DataBind() only
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingModes.None">
+            <summary>
+            No binding occurs
+            </summary> 
+        </member>
+        <member name="T:MasterSystem.Web.Controls.BindingTypes">
+            <summary>
+            Determines how databinding is performed for the target control. Note that 
+            if a wwDataBindingItem is  marked for None or OneWay, the control will not 
+            be unbound or in the case of None bound even when an explicit call to 
+            DataBind() or Unbind() is made.
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.StringType">
+            <summary>
+            Databinding Type for DataBind() and Unbind()
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.IntType">
+            <summary>
+            String Type default
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.CurrencyType">
+            <summary>
+            Integer Type
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.DecimalType">
+            <summary>
+            Currency Type with 
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.ClrDateType">
+            <summary>
+            Currency Type with 
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.ClrTimeType">
+            <summary>
+            DataBinding occurs for DataBind() only
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.BindingTypes.None">
+            <summary>
+            DataBinding occurs for DataBind() only
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.DataBindingValidationEventArgs">
+            <summary>
+            Event Args passed to a Validate event of a wwDataBindingItem control.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.DataBindingValidationEventArgs.DataBindingItem">
+            <summary>
+            Instance of the DataBinding Control that fired this Validation event.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.DataBindingValidationEventArgs.IsValid">
+            <summary>
+            Out flag that determines whether this control value is valid.
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.PreservePropertyControl">
+            <summary>
+            Control used to automatically preserve properties on a page.
+            By calling PreserveProperty you're instructing this control
+            to persist and then restore the value of the specified property
+            or field of a control and have it automatically restored on the
+            next page access.
+            
+            The difference of this mechanism is that it works with ViewState
+            off, and automatically reassigns persisted values back to the 
+            controls they belong to without any extra code. It greatly 
+            simplifies persisting values like IDs or some ViewState based
+            values without having to use Viewstate on a page.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.AddParsedSubObject(System.Object)">
+            <summary>
+            Required to be able to properly PreservedProperty Collection 
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.PreservePropertyControl.SerialzedProperties">
+            <summary>
+            Internal persistance object used to serialize
+            into the state store. Hashtable is Serializable
+            and can be serialized by the LosFormatter
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.PreservePropertyControl.PreservePropertyKey">
+            <summary>
+            Cache key value used
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.PreserveProperty(System.Web.UI.Control,System.String)">
+            <summary>
+            Adds a control to the collection. At this point only the
+            control and property are stored.
+            </summary>
+            <param name="WebControl"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.PreserveProperty(System.String,System.String)">
+            <summary>
+            Adds a control to the collection. At this point only the
+            control and property are stored.
+            </summary>
+            <param name="ControlId"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.OnInit(System.EventArgs)">
+            <summary>
+            Read in data of preserved properties in OnInit
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.OnPreRender(System.EventArgs)">
+            <summary>
+            Write out data for preserved properties in OnPreRender
+            </summary>
+            <param name="e"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.SaveControlState">
+            <summary>
+            Saves the preserved Properties into a Hashtabe where the key is
+            a string containing the ControlID and Property name
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.LoadControlState(System.Object)">
+            <summary>
+            Overridden to store a HashTable of preserved properties.
+            Key: CtlID + "|" + Property
+            Value: Value of the control
+            </summary>
+            <param name="savedState"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.SaveStateToLosStorage">
+            <summary>
+            Saves state the specified storage mechanism by
+            first serializing to a string with the LosFormatter
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.PreservePropertyControl.LoadStateFromLosStorage">
+            <summary>
+            Retrieves the serialized data from the Storage medium
+            as string using LosFormatter formatting.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.PreservePropertyControl.StorageMode">
+            <summary>
+            Determines the storage mode for the control.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.PreservePropertyControl.Enabled">
+            <summary>
+            Determines whether the control preserves and restores values
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.PreservedProperty">
+            <summary>
+            An individual Preserved Property. Contains
+            a ControlId and Property name and optional (on preserve)
+            an instance of a control.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.PreservedProperty.ControlInstance">
+            <summary>
+            An optional instance of the control that can be assigned
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.PropertyStorageModes">
+            <summary>
+            Determines how preserved properties are stored on the page
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.Tools.wwWebUtils">
+            <summary>
+            Summary description for wwWebUtils.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.ResolveUrl(System.String)">
+            <summary>
+            Returns a fully qualified HTTP path from a partial path starting out with a ~.
+            Same syntax that ASP.Net internally supports.
+            </summary>
+            <param name="RelativePath"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.ResolveServerUrl(System.String)">
+            <summary>
+            This method returns a fully qualified server Url which includes
+            the protocol, server, port in addition to the server relative Url.
+            
+            It work like Page.ResolveUrl, but adds these to the beginning.
+            This method is useful for generating Urls for AJAX methods
+            </summary>
+            <param name="ServerUrl">Any Url, either App relative or fully qualified</param>
+            <param name="ServerControl">Required Page or Server Control so this method can call ResolveUrl.
+            This parameter should be of the current form or a control on the form.</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.SetUserLocale(System.String)">
+            <summary>
+            Sets a user's Locale based on the browser's Locale setting. If no setting
+            is provided the default Locale is used.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.FindControlRecursive(System.Web.UI.Control,System.String)">
+            <summary>
+            Finds a Control recursively. Note finds the first match and exits
+            </summary>
+            <param name="ContainerCtl"></param>
+            <param name="IdToFind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.FormVarsToObject(System.Object,System.String)">
+            <summary>
+            Reads Web Form FormVariable names into an object's proeprties matching by
+            property/field name. An optional prefix (like 'txt') may be used to read
+            values. Only a shallow parse is done.
+            </summary>
+            <param name="Target"></param>
+            <param name="FormVarPrefix"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.FormVarsToDataRow(System.Data.DataRow,System.String)">
+            <summary>
+            Generically retrieves form variables from an HTML form and stores it into a
+             specific DataRow.
+            <seealso>Class WebUtils</seealso>
+            </summary>
+            <param name="loRow">
+            A DataRow object to load up with values from the Request.Form[] collection.
+            </param>
+            <param name="Prefix">
+            Optional prefix of form vars. For example, "txtCompany" has a "txt" prefix 
+            to map to the "Company" field.
+            </param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.ForceReload">
+            <summary>
+            Creates the headers required to force the current request to not go into 
+            the client side cache, forcing a reload of the page.
+            
+            This method can be called anywhere as part of the Response processing to 
+            modify the headers. Use this for any non POST pages that should never be 
+            cached.
+            <seealso>Class WebUtils</seealso>
+            </summary>
+            <param name="Response"></param>
+            <returns>Void</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.AspTextMerge(System.String,System.String@)">
+            <summary>
+            Returns the result from an ASPX 'template' page in the /templates directory of this application.
+            This method uses an HTTP client to call into the Web server and retrieve the result as a string.
+            </summary>
+            <param name="TemplatePageAndQueryString">The name of a page (ASPX, HTM etc.) in the Templates directory to retrieve plus the querystring</param>
+            <param name="ErrorMessage">If this method returns null this message will contain the error info</param>
+            <returns>Merged Text or null if an HTTP error occurs - note: could also return an Error page HTML result if the template page has an error.</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwWebUtils.GetUrlPath(System.String)">
+            <summary>
+            Returns just the Path of a full Url. Strips off the filename and querystring
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.wwErrorDisplay">
+            <summary>
+            A simple ErrorDisplay control that can be used to display errors consistently
+            on Web Pages. The class includes several ways to do display data (ShowError,
+            ShowMessage) as well as direct assignment and lists displays.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwErrorDisplay.ShowError(System.String)">
+            <summary>
+            Assigns an error message to the control
+            </summary>
+            <param name="Text"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwErrorDisplay.ShowError(System.String,System.String)">
+            <summary>
+            Assigns an error message to the control as well as a UserMessage
+            </summary>
+            <param name="Text"></param>
+            <param name="Message"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwErrorDisplay.ShowMessage(System.String)">
+            <summary>
+            Displays a simple message in the display area along with the info icon if set.
+            </summary>
+            <param name="Message"></param>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.Text">
+            <summary>
+            The detail text of the error message
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.UserMessage">
+            <summary>
+            The message to display above the error message.
+            For example: Please correct the following:
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.ErrorImage">
+            <summary>
+            Image displayed with the error message
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.Center">
+            <summary>
+            Determines whether the display box is centered
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.UseFixedHeightWhenHiding">
+            <summary>
+            Determines whether the control keeps its space padding
+            when it is is hidden in order not to jump the display
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.RenderMode">
+            <summary>
+            Determines how the error dialog renders
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.Width">
+            <summary>
+            The width of the ErrorDisplayBox
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.CellPadding">
+            <summary>
+            Determines the padding inside of the error display box.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.CssClass">
+            <summary>
+            The CSS Class used for the table and column to display this item.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwErrorDisplay.DisplayTimeout">
+            <summary>
+            A timeout in milliseconds for how long the error display is visible. 0 means no timeout.
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.RenderModes.Text">
+            <summary>
+            Error Text is Text and needs fixing up
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.RenderModes.Html">
+            <summary>
+            The text is HTML and ready to display
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.RenderModes.TextAsBulletList">
+            <summary>
+            Text is plain text and should be rendered as a bullet list
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.Tools.wwUtils">
+            <summary>
+            wwUtils class which contains a set of common utility classes for 
+            Formatting strings
+            Reflection Helpers
+            Object Serialization
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.Tools.wwUtils.MemberAccess">
+            <summary>
+            Binding Flags constant to be reused for all Reflection access methods.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.FixHTMLForDisplay(System.String)">
+            <summary>
+            Replaces and  and Quote characters to HTML safe equivalents.
+            </summary>
+            <param name="Html">HTML to convert</param>
+            <returns>Returns an HTML string of the converted text</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.StripHtml(System.String)">
+            <summary>
+            Strips HTML tags out of an HTML string and returns just the text.
+            </summary>
+            <param name="Html">Html String</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.DisplayMemo(System.String)">
+            <summary>
+            Fixes a plain text field for display as HTML by replacing carriage returns 
+            with the appropriate br and p tags for breaks.
+            </summary>
+            <param name="String Text">Input string</param>
+            <returns>Fixed up string</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.DisplayMemoEncoded(System.String)">
+            <summary>
+            Method that handles handles display of text by breaking text.
+            Unlike the non-encoded version it encodes any embedded HTML text
+            </summary>
+            <param name="Text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ExpandUrls(System.String,System.String)">
+            <summary>
+            Expands links into HTML hyperlinks inside of text or HTML.
+            </summary>
+            <param name="Text">The text to expand</param>
+            <param name="Target">Target frame where output is displayed</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ExtractString(System.String,System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Extracts a string from between a pair of delimiters. Only the first 
+            instance is found.
+            </summary>
+            <param name="Source">Input String to work on</param>
+            <param name="StartDelim">Beginning delimiter</param>
+            <param name="EndDelim">ending delimiter</param>
+            <param name="CaseInsensitive">Determines whether the search for delimiters is case sensitive</param>
+            <returns>Extracted string or ""</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ExtractString(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Extracts a string from between a pair of delimiters. Only the first
+            instance is found.
+            <seealso>Class wwUtils</seealso>
+            </summary>
+            <param name="Source">
+            Input String to work on
+            </param>
+            <param name="BeginDelim"></param>
+            <param name="EndDelim">
+            ending delimiter
+            </param>
+            <param name="CaseInSensitive"></param>
+            <returns>String</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ExtractString(System.String,System.String,System.String)">
+            <summary>
+            Extracts a string from between a pair of delimiters. Only the first 
+            instance is found. Search is case insensitive.
+            </summary>
+            <param name="Source">
+            Input String to work on
+            </param>
+            <param name="StartDelim">
+            Beginning delimiter
+            </param>
+            <param name="EndDelim">
+            ending delimiter
+            </param>
+            <returns>Extracted string or ""</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.Empty(System.String)">
+            <summary>
+            Determines whether a string is empty (null or zero length)
+            </summary>
+            <param name="String">Input string</param>
+            <returns>true or false</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:MasterSystem.Web.Controls.Tools.wwUtils.Empty(System.Object)" -->
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ProperCase(System.String)">
+            <summary>
+            Return a string in proper Case format
+            </summary>
+            <param name="Input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.TextAbstract(System.String,System.Int32)">
+            <summary>
+            Returns an abstract of the provided text by returning up to Length characters
+            of a text string. If the text is truncated a ... is appended.
+            </summary>
+            <param name="Text">Text to abstract</param>
+            <param name="Length">Number of characters to abstract to</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.HtmlAbstract(System.String,System.Int32)">
+            <summary>
+            Creates an Abstract from an HTML document. Strips the 
+            HTML into plain text, then creates an abstract.
+            </summary>
+            <param name="Html"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.UrlEncode(System.String)">
+            <summary>
+            UrlEncodes a string without the requirement for System.Web
+            </summary>
+            <param name="String"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.UrlDecode(System.String)">
+            <summary>
+            UrlDecodes a string without requiring System.Web
+            </summary>
+            <param name="InputString">String to decode.</param>
+            <returns>decoded string</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetUrlEncodedKey(System.String,System.String)">
+            <summary>
+            Retrieves a value by key from a UrlEncoded string.
+            </summary>
+            <param name="UrlEncodedString">UrlEncoded String</param>
+            <param name="Key">Key to retrieve value for</param>
+            <returns>returns the value or "" if the key is not found or the value is blank</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetProperty(System.Object,System.String)">
+            <summary>
+            Retrieve a property value from an object dynamically. This is a simple version
+            that uses Reflection calls directly. It doesn't support indexers.
+            </summary>
+            <param name="Object">Object to make the call on</param>
+            <param name="Property">Property to retrieve</param>
+            <returns>Object - cast to proper type</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetField(System.Object,System.String)">
+            <summary>
+            Retrieve a field dynamically from an object. This is a simple implementation that's
+            straight Reflection and doesn't support indexers.
+            </summary>
+            <param name="Object">Object to retreve Field from</param>
+            <param name="Property">name of the field to retrieve</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetPropertyInternal(System.Object,System.String)">
+            <summary>
+            Parses Properties and Fields including Array and Collection references.
+            Used internally for the 'Ex' Reflection methods.
+            </summary>
+            <param name="Parent"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SetPropertyInternal(System.Object,System.String,System.Object)">
+            <summary>
+            Parses Properties and Fields including Array and Collection references.
+            </summary>
+            <param name="Parent"></param>
+            <param name="Property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetPropertyEx(System.Object,System.String)">
+            <summary>
+            Returns a property or field value using a base object and sub members including . syntax.
+            For example, you can access: this.oCustomer.oData.Company with (this,"oCustomer.oData.Company")
+            This method also supports indexers in the Property value such as:
+            Customer.DataSet.Tables["Customers"].Rows[0]
+            </summary>
+            <param name="Parent">Parent object to 'start' parsing from. Typically this will be the Page.</param>
+            <param name="Property">The property to retrieve. Example: 'Customer.Entity.Company'</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SetProperty(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the property on an object. This is a simple method that uses straight Reflection 
+            and doesn't support indexers.
+            </summary>
+            <param name="Object">Object to set property on</param>
+            <param name="Property">Name of the property to set</param>
+            <param name="Value">value to set it to</param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SetField(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the field on an object. This is a simple method that uses straight Reflection 
+            and doesn't support indexers.
+            </summary>
+            <param name="Object">Object to set property on</param>
+            <param name="Property">Name of the field to set</param>
+            <param name="Value">value to set it to</param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SetPropertyEx(System.Object,System.String,System.Object)">
+            <summary>
+            Sets a value on an object. Supports . syntax for named properties
+            (ie. Customer.Entity.Company) as well as indexers.
+            </summary>
+            <param name="Object Parent">
+            Object to set the property on.
+            </param>
+            <param name="String Property">
+            Property to set. Can be an object hierarchy with . syntax and can 
+            include indexers. Examples: Customer.Entity.Company, 
+            Customer.DataSet.Tables["Customers"].Rows[0]
+            </param>
+            <param name="Object Value">
+            Value to set the property to
+            </param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.CallMethod(System.Object,System.String,System.Object[])">
+            <summary>
+            Calls a method on an object dynamically.
+            </summary>
+            <param name="Params"></param>
+            1st - Method name, 2nd - 1st parameter, 3rd - 2nd parm etc.
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.CallMethodEx(System.Object,System.String,System.Object[])">
+            <summary>
+            Calls a method on an object with extended . syntax (object: this Method: Entity.CalculateOrderTotal)
+            </summary>
+            <param name="Parent"></param>
+            <param name="Method"></param>
+            <param name="Params"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.CreateInstanceFromType(System.Type)">
+            <summary>
+            Creates an instance from a type by calling the parameterless constructor.
+            
+            Note this will not work with COM objects - continue to use the Activator.CreateInstance
+            for COM objects.
+            <seealso>Class wwUtils</seealso>
+            </summary>
+            <param name="TypeToCreate">
+            The type from which to create an instance.
+            </param>
+            <returns>object</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.TypedValueToString(System.Object,System.Globalization.CultureInfo)">
+            <summary>
+            Converts a type to string if possible. This method supports an optional culture generically on any value.
+            It calls the ToString() method on common types and uses a type converter on all other objects
+            if available
+            </summary>
+            <param name="RawValue">The Value or Object to convert to a string</param>
+            <param name="Culture">Culture for numeric and DateTime values</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.TypedValueToString(System.Object)">
+            <summary>
+            Converts a type to string if possible. This method uses the current culture for numeric and DateTime values.
+            It calls the ToString() method on common types and uses a type converter on all other objects
+            if available.
+            </summary>
+            <param name="RawValue">The Value or Object to convert to a string</param>
+            <param name="Culture">Culture for numeric and DateTime values</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.StringToTypedValue(System.String,System.Type,System.Globalization.CultureInfo)">
+            <summary>
+            Turns a string into a typed value. Useful for auto-conversion routines
+            like form variable or XML parsers.
+            <seealso>Class wwUtils</seealso>
+            </summary>
+            <param name="SourceString">
+            The string to convert from
+            </param>
+            <param name="TargetType">
+            The type to convert to
+            </param>
+            <param name="Culture">
+            Culture used for numeric and datetime values.
+            </param>
+            <returns>object. Throws exception if it cannot be converted.</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.StringToTypedValue(System.String,System.Type)">
+            <summary>
+            Turns a string into a typed value. Useful for auto-conversion routines
+            like form variable or XML parsers.
+            </summary>
+            <param name="SourceString">The input string to convert</param>
+            <param name="TargetType">The Type to convert it to</param>
+            <returns>object reference. Throws Exception if type can not be converted</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetPropertyCom(System.Object,System.String)">
+            <summary>
+            Retrieve a dynamic 'non-typelib' property
+            </summary>
+            <param name="Object">Object to make the call on</param>
+            <param name="Property">Property to retrieve</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetPropertyExCom(System.Object,System.String)">
+            <summary>
+            Returns a property or field value using a base object and sub members including . syntax.
+            For example, you can access: this.oCustomer.oData.Company with (this,"oCustomer.oData.Company")
+            </summary>
+            <param name="Parent">Parent object to 'start' parsing from.</param>
+            <param name="Property">The property to retrieve. Example: 'oBus.oData.Company'</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SetPropertyCom(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the property on an object.
+            </summary>
+            <param name="Object">Object to set property on</param>
+            <param name="Property">Name of the property to set</param>
+            <param name="Value">value to set it to</param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SetPropertyExCom(System.Object,System.String,System.Object)">
+            <summary>
+            Sets the value of a field or property via Reflection. This method alws 
+            for using '.' syntax to specify objects multiple levels down.
+            
+            wwUtils.SetPropertyEx(this,"Invoice.LineItemsCount",10)
+            
+            which would be equivalent of:
+            
+            this.Invoice.LineItemsCount = 10;
+            </summary>
+            <param name="Object Parent">
+            Object to set the property on.
+            </param>
+            <param name="String Property">
+            Property to set. Can be an object hierarchy with . syntax.
+            </param>
+            <param name="Object Value">
+            Value to set the property to
+            </param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.CallMethodCom(System.Object,System.String,System.Object[])">
+            <summary>
+            Wrapper method to call a 'dynamic' (non-typelib) method
+            on a COM object
+            </summary>
+            <param name="Params"></param>
+            1st - Method name, 2nd - 1st parameter, 3rd - 2nd parm etc.
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ObjectToString(System.Object,System.String,MasterSystem.Web.Controls.Tools.wwUtils.ObjectToStringTypes)">
+            <summary>
+            Returns a string of all the field value pairs of a given object.
+            Works only on non-statics.
+            </summary>
+            <param name="Obj"></param>
+            <param name="Separator"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SerializeObject(System.Object,System.String,System.Boolean)">
+            <summary>
+            Serializes an object instance to a file.
+            </summary>
+            <param name="Instance">the object instance to serialize</param>
+            <param name="Filename"></param>
+            <param name="BinarySerialization">determines whether XML serialization or binary serialization is used</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SerializeObject(System.Object,System.Xml.XmlTextWriter)">
+            <summary>
+            Overload that supports passing in an XML TextWriter. Note the Writer is not closed
+            </summary>
+            <param name="Instance"></param>
+            <param name="writer"></param>
+            <param name="BinarySerialization"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SerializeObject(System.Object,System.String@)">
+            <summary>
+            Serializes an object into a string variable for easy 'manual' serialization
+            </summary>
+            <param name="Instance"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.SerializeObject(System.Object,System.Byte[]@)">
+            <summary>
+            Serializes an object instance to a file.
+            </summary>
+            <param name="Instance">the object instance to serialize</param>
+            <param name="Filename"></param>
+            <param name="BinarySerialization">determines whether XML serialization or binary serialization is used</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.DeSerializeObject(System.String,System.Type,System.Boolean)">
+            <summary>
+            Deserializes an object from file and returns a reference.
+            </summary>
+            <param name="Filename">name of the file to serialize to</param>
+            <param name="ObjectType">The Type of the object. Use typeof(yourobject class)</param>
+            <param name="BinarySerialization">determines whether we use Xml or Binary serialization</param>
+            <returns>Instance of the deserialized object or null. Must be cast to your object type</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.DeSerializeObject(System.Xml.XmlReader,System.Type)">
+            <summary>
+            Deserialize an object from an XmlReader object.
+            </summary>
+            <param name="reader"></param>
+            <param name="ObjectType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetSystemPassword(System.Boolean)">
+            <summary>
+            Returns the logon password stored in the registry if Auto-Logon is used.
+            This function is used privately for demos when I need to specify a login username and password.
+            </summary>
+            <param name="GetUserName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.MimeDateTime(System.DateTime)">
+            <summary>
+            Converts the passed date time value to Mime formatted time string
+            </summary>
+            <param name="Time"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.HttpGet(System.String,System.String@)">
+            <summary>
+            Single method to retrieve HTTP content from the Web quickly
+            </summary>
+            <param name="Url"></param>
+            <param name="ErrorMessage"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.JustPath(System.String)">
+            <summary>
+            Returns the full path of a full physical filename
+            </summary>
+            <param name="Path"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GetRelativePath(System.String,System.String)">
+            <summary>
+            Returns a relative path string from a full path.
+            </summary>
+            <param name="FullPath">The path to convert. Can be either a file or a directory</param>
+            <param name="BasePath">The base path to truncate to and replace</param>
+            <returns>
+            Lower case string of the relative path. If path is a directory it's returned without a backslash at the end.
+            
+            Examples of returned values:
+             .\test.txt, ..\test.txt, ..\..\..\test.txt, ., ..
+            </returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.GoUrl(System.String)">
+            <summary>
+            Uses the Shell Extensions to launch a program based or URL moniker.
+            </summary>
+            <param name="lcUrl">Any URL Moniker that the Windows Shell understands (URL, Word Docs, PDF, Email links etc.)</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ShowString(System.String,System.String)">
+            <summary>
+            Displays an HTML string in a browser window
+            </summary>
+            <param name="HtmlString"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.wwUtils.ShowText(System.String)">
+            <summary>
+            Displays a large Text string as a text file.
+            </summary>
+            <param name="TextString"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.ExpandUrlsParser.ExpandUrls(System.String)">
+            <summary>
+            Expands links into HTML hyperlinks inside of text or HTML.
+            </summary>
+            <param name="Text">The text to expand</param>
+            <param name="Target">Target frame where output is displayed</param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.Tools.ExpandUrlsParser.ExpandUrlsRegExEvaluator(System.Text.RegularExpressions.Match)">
+            <summary>
+            Internal RegExEvaluator callback
+            </summary>
+            <param name="M"></param>
+            <returns></returns>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.BindingErrors">
+            <summary>
+            This class provides a holding container for BindingErrors. BindingErrors 
+            occur during binding and unbinding of controls and any errors are stored in
+             this collection. This class is used extensively for checking for 
+            validation errors and then displaying them with the ToString() or ToHtml() 
+            methods.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.BindingErrors.ToHtml">
+            <summary>
+            Formats all the BindingErrors into a rich list of error messages. The error
+             messages are marked up with links to the appropriate controls. Format of 
+            the list is a &lt;ul&gt; style list ready to display in an HTML page.
+            <seealso>Class BindingErrors</seealso>
+            </summary>
+            <returns>an Html string of the errors</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.BindingErrors.ToString">
+            <summary>
+            Formats an Binding Errors collection as a string with carriage returns
+            </summary>
+            <param name="Errors"></param>
+            <returns></returns>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.BindingError">
+            <summary>
+            Error object used to return error information during databinding.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.BindingError.ClientID">
+            <summary>
+            The ClientID of the control the error occurred on. This value is used to 
+            provide the hot linking to the control.
+            <seealso>Class BindingError</seealso>
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.BindingError.Message">
+            <summary>
+            The error message that is displayed for the Binding error.
+            <seealso>Class BindingError</seealso>
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.BindingError.ErrorMessage">
+            <summary>
+            The raw Exception error message. Not used at the moment.
+            <seealso>Class BindingError</seealso>
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.wwDataBindingItemCollection">
+            <summary>
+            Collection of individual DataBindingItems. Implemented explicitly as
+            a CollectionBase class rather than using List#wwDataBindingItems#
+            so that Add can be overridden
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.wwDataBindingItemCollection._ParentDataBinder">
+            <summary>
+            Internal reference to the wwDataBinder object
+            that is passed to the individual items if available
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItemCollection.#ctor(MasterSystem.Web.Controls.wwDataBinder)">
+            <summary>
+            Preferred Constructor - Add a reference to the wwDataBinder object here
+            so a reference can be passed to the children.
+            </summary>
+            <param name="Parent"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItemCollection.#ctor">
+            <summary>
+            Not the preferred constructor - If possible pass a reference to the
+            Binder object in the overloaded version.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItemCollection.Add(MasterSystem.Web.Controls.wwDataBindingItem)">
+            <summary>
+            Add a wwDataBindingItem to the collection
+            </summary>
+            <param name="Item"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItemCollection.AddAt(System.Int32,MasterSystem.Web.Controls.wwDataBindingItem)">
+            <summary>
+            Add a wwDataBindingItem to the collection
+            </summary>
+            <param name="index"></param>
+            <param name="Item"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBindingItemCollection.UpdateListInDesignMode">
+            <summary>
+            We have to delete 'empty' items because the designer requires items to be 
+            added to the collection just for editing. This way we may have one 'extra'
+            item, but not a whole long list of items.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBindingItemCollection.Item(System.Int32)">
+            <summary>
+            Public indexer for the Items
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.ControlsResources">
+            <summary>
+            Class is used as to consolidate access to resources
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.wwDataBinder">
+            <summary>
+            The wwDataBinder class provides two-way, simple databinding a single 
+            datasource value and single control property. It can bind object properties
+             and fields and database values (DataRow fields) to a control property such
+             as the Text, Checked or SelectedValue properties. In a nutshell the 
+            controls acts as a connector between a datasource and the control and 
+            provides explicit databinding for the control.
+            
+            The control supports two-way binding. Control can be bound to the 
+            datasource values and can be unbound by taking control values and storing 
+            them back into the datasource. The process is performed explicitly by 
+            calling the DataBind() and Unbind() methods of the control. Controls 
+            attached to the databinder can also be bound individually.
+            
+            The control also provides a BindErrors collection which captures any 
+            binding errors and allows friendly display of these binding errors using 
+            the ToHtml() method. BindingErrors can be manually added and so application
+             level errors can be handled the same way as binding errors. It's also 
+            possible to pull in ASP.NET Validator control errors.
+            
+            Simple validation is available with IsRequired for each DataBinding item. 
+            Additional validation can be performed server side by implementing the 
+            ValidateControl event which allows you to write application level 
+            validation code.
+            
+            This control is implemented as an Extender control that extends any Control
+             based class. This means you can databind to ANY control class and its 
+            properties with this component.
+            <seealso>Class wwDataBindingItem</seealso>
+            </summary>
+        </member>
+        <member name="F:MasterSystem.Web.Controls.wwDataBinder._AutoLoadedDataBoundControls">
+            <summary>
+            Flag that determines whether controls where auto-loaded from the page.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.DataBind">
+            <summary>
+            Binds the controls that are attached to this DataBinder.
+            </summary>
+            <returns>true if there no errors. False otherwise.</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.DataBind(System.Web.UI.Control)">
+            <summary>
+            Binds data of the specified controls into the specified bindingsource
+            </summary>
+            <param name="Container">The top level container that is bound</param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.Unbind">
+            <summary>
+            Unbind the controls back into their underlying binding sources. Returns true on success
+            false on failure. On failure the BindingErrors collection will be set
+            </summary>
+            <returns>True if there are no errors. False if unbinding failed. Check the BindingErrors for errors.</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.Unbind(System.Web.UI.Control)">
+            <summary>
+            Unbind the controls back into their binding source. Returns true on success
+            false on failure. On failure the BindingErrors collection will be set
+            </summary>
+            <param name="Container">The top level container Control that is bound.</param>
+            <returns>True if there are no errors. False if unbinding failed. Check the BindingErrors for errors.</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.HandleUnbindingError(MasterSystem.Web.Controls.wwDataBindingItem,System.Exception)">
+            <summary>
+            Manages errors that occur during unbinding. Sets BindingErrors collection and
+            and writes out validation error display to the page if specified
+            </summary>
+            <param name="Item"></param>
+            <param name="ex"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddBinding(System.Web.UI.Control,System.String,System.Object,System.String)">
+            <summary>
+            Adds a binding to the control. This method is a simple
+            way to establish a binding.
+            
+            Returns the Item so you can customize properties further
+            </summary>
+            <param name="ControlToBind"></param>
+            <param name="ControlPropertyToBind"></param>
+            <param name="SourceObjectToBindTo"></param>
+            <param name="SourceMemberToBindTo"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddBinding(System.Web.UI.Control,System.String,System.String,System.String)">
+            <summary>
+            Adds a binding to the control. This method is a simple
+            way to establish a binding.
+            
+            Returns the Item so you can customize properties further
+            </summary>
+            <param name="ControlToBind"></param>
+            <param name="ControlPropertyToBind"></param>
+            <param name="SourceObjectNameToBindTo"></param>
+            <param name="SourceMemberToBindTo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddBinding(System.Web.UI.Control)">
+            <summary>
+            This method only adds a data binding item, but doesn't bind it
+            to anything. This can be useful for only displaying errors
+            </summary>
+            <param name="ControlToBind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddBindingError(System.String,System.String)">
+            <summary>
+            Adds a binding error message to a specific control attached to this binder
+            BindingErrors collection.
+            </summary>
+            <param name="ControlName">Form relative Name (ID) of the control to set the error on</param>
+            <param name="ErrorMessage">The Error Message to set it to.</param>
+            <returns>true if the control was found. False if not found, but message is still assigned</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddBindingError(System.String,System.Web.UI.Control)">
+            <summary>
+            Adds a binding error to the collection of binding errors.
+            </summary>
+            <param name="ErrorMessage"></param>
+            <param name="control"></param>
+            <returns>false if the control was not able to get a control reference to attach hotlinks and an icon. Error message always gets added</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddBindingError(System.String,MasterSystem.Web.Controls.wwDataBindingItem)">
+            <summary>
+            Adds a binding error for DataBindingItem control. This is the most efficient
+            way to add a BindingError. The other overloads call into this method after
+            looking up the Control in the DataBinder.
+            </summary>
+            <param name="ErrorMessage"></param>
+            <param name="BindingItem"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.LoadFromControls(System.Web.UI.Control)">
+            <summary>
+            Picks up all controls on the form that implement the IwwDataBinder interface
+            and adds them to the DataBindingItems Collection
+            </summary>
+            <param name="Container"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.LoadDataBoundControls(System.Web.UI.Control)">
+            <summary>
+            Loop through all of the contained controls of the form and
+            check for all that implement IwwDataBinder. If found
+            add the BindingItem to this Databinder
+            </summary>
+            <param name="Container"></param>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.DeriveUserFieldName(MasterSystem.Web.Controls.wwDataBindingItem)">
+            <summary>
+            Returns a UserField name. Returns UserFieldname if set, or if not
+            attempts to derive the name based on the field.
+            </summary>
+            <param name="Control"></param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:MasterSystem.Web.Controls.wwDataBinder.GetBindingErrorMessageHtml(MasterSystem.Web.Controls.wwDataBindingItem)" -->
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.AddScriptForAddHtmlAfterControl">
+            <summary>
+            This method adds the static script to handle injecting the warning icon/messages 
+            into the page as literal strings.
+            </summary>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.OnValidateControl(MasterSystem.Web.Controls.wwDataBindingItem)">
+            <summary>
+            Fires the ValidateControlEvent
+            </summary>
+            <param name="Item"></param>
+            <returns>false - Validation for control failed and a BindingError is added, true - Validation succeeded</returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.CanExtend(System.Object)">
+            <summary>
+            Determines whether a control can be extended. Basically
+            we allow ANYTHING to be extended so all controls except
+            the databinder itself are extendable.
+            
+            Optionally the control can be set up to not act as 
+            an extender in which case the IsExtender property 
+            can be set to false
+            </summary>
+            <param name="extendee"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.GetDataBindingItem(System.Web.UI.Control)">
+            <summary>
+            Returns a specific DataBinding Item for a given control.
+            Always returns an item even if the Control is not found.
+            If you need to check whether this is a valid item check
+            the BindingSource property for being blank.
+            
+            Extender Property Get method
+            </summary>
+            <param name="control"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.GetDataBindingItem(System.String)">
+            <summary>
+            Return a specific databinding item for a give control id.
+            Note unlike the ControlInstance version return null if the
+            ControlId isn't found. 
+            </summary>
+            <param name="ControlId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MasterSystem.Web.Controls.wwDataBinder.NotifyDesigner">
+            <summary>
+            this method is used to ensure that designer is notified
+            every time there is a change in the sub-ordinate validators
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.DataBindingItems">
+            <summary>
+            A collection of all the DataBindingItems that are to be bound. Each 
+            &lt;&lt;%= TopicLink([wwDataBindingItem],[_1UL03RIKQ]) %&gt;&gt; contains 
+            the information needed to bind and unbind a DataSource to a Control 
+            property.
+            <seealso>Class wwDataBinder</seealso>
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.BindingErrors">
+            <summary>
+            A collection of binding errors that is filled after binding or unbinding
+            if errors occur during binding and unbinding.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.ShowBindingErrorsOnControls">
+            <summary>
+            Determines whether binding errors are display on controls.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.ErrorIconUrl">
+            <summary>
+            Optional Url to the Warning and Info Icons.
+            Note: Used only if the control uses images.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.UseClientScriptHtmlInjection">
+            <summary>
+            Determines whether the control uses client script to inject error 
+            notification icons/messages into the page. Setting this flag to true causes
+             JavaScript to be added to the page to create the messages. If false, the 
+            DataBinder uses Controls.Add to add controls to the Page or other 
+            Containers.
+            
+            JavaScript injection is preferrable as it works reliable under all 
+            environments except when JavaScript is off. Controls.Add() can have 
+            problems if &lt;% %&gt; &lt;%= %&gt; script is used in a container that has
+             an error and needs to add a control.
+            <seealso>Class wwDataBinder</seealso>
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.ErrorIconWebResource">
+            <summary>
+            The Web Resource Url used to access retrieve the Error Icon.
+            Used to minimize reloading this URL from the resource manager
+            repeatedly.
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.AutoLoadDataBoundControls">
+            <summary>
+            Automatically imports all controls on the form that implement the IwwDataBinder interface and adds them to the DataBinder
+            </summary>
+        </member>
+        <member name="P:MasterSystem.Web.Controls.wwDataBinder.IsExtender">
+            <summary>
+            Determines whether this control works as an Extender object to other controls on the form.
+            In some situations it might be useful to disable the extender functionality such
+            as when all databinding is driven through code or when using the IwwDataBinder
+            interface with custom designed controls that have their own DataBinder objects.
+            </summary>
+        </member>
+        <member name="E:MasterSystem.Web.Controls.wwDataBinder.ValidateControl">
+            <summary>
+            Event that can be hooked to validate each control after it's been unbound. 
+            Allows for doing application level validation of the data once it's been 
+            returned.
+            
+            This method receives a wwDataBindingItem parameter which includes a 
+            reference to both the control and the DataSource object where you can check
+             values. Return false from the event method to indicate that validation 
+            failed which causes a new BindingError to be created and added to the 
+            BindingErrors collection.
+            <seealso>Class wwDataBinder</seealso>
+            </summary>
+            <example>
+            &lt;&lt;code lang=&quot;C#&quot;&gt;&gt;protected bool 
+            DataBinder_ValidateControl(MasterSystem.Web.Controls.wwDataBindingItem Item)
+            {
+                if (Item.ControlInstance == this.txtCategoryId)
+                {
+                    DropDownList List = Item.ControlInstance as DropDownList;
+                    if (List.SelectedItem.Text == &quot;Dairy Products&quot;)
+                    {
+                        Item.BindingErrorMessage = &quot;Dairy Properties not allowed 
+            (ValidateControl)&quot;;
+                        return false;
+                    }
+                }
+            
+                return true;
+            }&lt;&lt;/code&gt;&gt;
+            </example>
+        </member>
+        <member name="E:MasterSystem.Web.Controls.wwDataBinder.BeforeBindControl">
+            <summary>
+            Fired just before the control is bound. You can return false from the 
+            handler to cause the control to not be bound
+            <seealso>Class wwDataBinder</seealso>
+            </summary>
+        </member>
+        <member name="E:MasterSystem.Web.Controls.wwDataBinder.AfterBindControl">
+            <summary>
+            Fires immediately after the control has been bound. You can check for
+            errors or perform additional validation.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "E:MasterSystem.Web.Controls.wwDataBinder.BeforeUnbindControl" -->
+        <member name="E:MasterSystem.Web.Controls.wwDataBinder.AfterUnbindControl">
+            <summary>
+            Fires immediately after binding is complete. You can check for errors 
+            and take additional action. 
+            </summary>
+        </member>
+        <member name="T:MasterSystem.Web.Controls.wwDataBinderDesigner">
+            <summary>
+            Control designer used so we get a grey button display instead of the 
+            default label display for the control.
+            </summary>
+        </member>
+    </members>
+</doc>
